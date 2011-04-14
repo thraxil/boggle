@@ -4,68 +4,77 @@
 #include <string.h>
 
 #include "stdint.h" /* Replace with <stdint.h> if appropriate */
-#undef get16bits
-#if (defined(__GNUC__) && defined(__i386__)) || defined(__WATCOMC__) \
-  || defined(_MSC_VER) || defined (__BORLANDC__) || defined (__TURBOC__)
-#define get16bits(d) (*((const uint16_t *) (d)))
-#endif
 
-#if !defined (get16bits)
-#define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8)\
-                       +(uint32_t)(((const uint8_t *)(d))[0]) )
-#endif
+#define MAX_LINE 100
+#define ALPHA_SIZE 26
 
+char *dictfile = "/usr/share/dict/words";
 
-/* found at http://www.azillionmonkeys.com/qed/hash.html */
-uint32_t SuperFastHash (const char * data, int len) {
-uint32_t hash = len, tmp;
-int rem;
-
-    if (len <= 0 || data == NULL) return 0;
-
-    rem = len & 3;
-    len >>= 2;
-
-    /* Main loop */
-    for (;len > 0; len--) {
-        hash  += get16bits (data);
-        tmp    = (get16bits (data+2) << 11) ^ hash;
-        hash   = (hash << 16) ^ tmp;
-        data  += 2*sizeof (uint16_t);
-        hash  += hash >> 11;
-    }
-
-    /* Handle end cases */
-    switch (rem) {
-        case 3: hash += get16bits (data);
-                hash ^= hash << 16;
-                hash ^= data[sizeof (uint16_t)] << 18;
-                hash += hash >> 11;
-                break;
-        case 2: hash += get16bits (data);
-                hash ^= hash << 11;
-                hash += hash >> 17;
-                break;
-        case 1: hash += *data;
-                hash ^= hash << 10;
-                hash += hash >> 1;
-    }
-
-    /* Force "avalanching" of final 127 bits */
-    hash ^= hash << 3;
-    hash += hash >> 5;
-    hash ^= hash << 4;
-    hash += hash >> 17;
-    hash ^= hash << 25;
-    hash += hash >> 6;
-
-    return hash;
-}
+struct trie_node {
+  struct trie_node *children[ALPHA_SIZE];
+};
 
 /* remove newlines */
 void chomp(char *s) {
     while(*s && *s != '\n' && *s != '\r') s++;
     *s = 0;
+}
+
+int alpha_position(char c) {
+  return c - 'a';
+}
+
+void initialize_trie_node(struct trie_node *t) {
+  int i;
+  for (i=0;i<ALPHA_SIZE;i++) t->children[i] = NULL;  
+}
+
+struct trie_node *talloc(void) {
+  return (struct trie_node *) malloc(sizeof(struct trie_node));
+}
+
+void insert_into_trie(struct trie_node *root, char *string) {
+  int position;
+  int i;
+  struct trie_node *child;
+  for (i=0; i<strlen(string); i++) {
+    position = alpha_position(string[i]);
+    child = root->children[position];
+    if (child == NULL) {
+      child = talloc();
+      initialize_trie_node(child);
+      root->children[position] = child;
+    } 
+    root = child;
+  }
+}
+
+void display_trie_children(struct trie_node *t) {
+  int i;
+  for (i=0; i<ALPHA_SIZE;i++) {
+    if (t->children[i] != NULL) {
+      printf("%c ",i + 'a');
+    }
+  }
+  printf("\n");
+}
+
+int search_trie(struct trie_node *root, char *string) {
+  int position;
+  int i,j;
+  for (i=0; i<strlen(string); i++) {
+    position = alpha_position(string[i]);
+    if (root->children[position] == NULL) {
+      if (i == strlen(string) - 1) {
+	return 1;
+      } else {
+	return 0;
+      } 
+    } else {
+      root = root->children[position];
+    }
+  }
+  return 1;
 }
 
 /**
@@ -80,7 +89,7 @@ int normalizeWord(char *s) {
   int i = 0;
   int c = 0;
   chomp(s);
-
+  if (strlen(s) < 3) return 0;
   while(*s) {
     c = tolower(*s);
     if (!(c >= 'a' && (c <= 'z'))) return 0;
@@ -89,30 +98,43 @@ int normalizeWord(char *s) {
   return 1;
 }
 
-int readWordList() {
+struct trie_node *readWordList() {
   FILE *fp;
-  char line[100];
+  char line[MAX_LINE];
   int lcount;
   int legal = 0;
-  int hash;
-  fp = fopen("/usr/share/dict/words","r");
+  struct trie_node *root;
+  initialize_trie_node(root);
+
+  fp = fopen(dictfile,"r");
   if (fp == NULL) {
       puts("cannot open file");
-      return 0;
+      return NULL;
     }
   while( fgets(line, sizeof(line), fp) != NULL ) {
     lcount++;
-    /*    hash = SuperFastHash(line,strlen(line)); */
     legal = normalizeWord(line);
     if (legal) {
-      printf("%s\n",line);
+      insert_into_trie(root,line);
     } 
   }
  
   fclose(fp);  /* Close the file */
+  printf("%s: %d\n","zygote",search_trie(root,"zygote"));
+  printf("%s: %d\n","asdf",search_trie(root,"asdf"));
+  return root;
 }
 
-int main(int argc, char **argv) {
-  char *v1 = argv[1];
-  readWordList();
+void main(int argc, char **argv) {
+  struct trie_node *root;
+  root = readWordList();
+  if (root == NULL) {
+    printf("root is null\n");
+  } else {
+    printf("not null\n");
+  }
+  /*  root = talloc();
+  insert_into_trie(root,"foo");
+  insert_into_trie(root,"bar"); */
+  printf("%s: %d","zygote",search_trie(root,"zygote"));
 }
