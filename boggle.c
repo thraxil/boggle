@@ -18,6 +18,13 @@ typedef struct trie_node {
   TrieNodePtr children[ALPHA_SIZE];
 } TrieNode;
 
+typedef struct board *BoardPtr;
+
+typedef struct board {
+  char data[BOARD_SIZE][BOARD_SIZE];
+} Board;
+
+
 /* remove newlines */
 void chomp(char *s) {
     while(*s && *s != '\n' && *s != '\r') s++;
@@ -125,12 +132,9 @@ TrieNodePtr readWordList() {
   return root;
 }
 
-struct board {
-  char data[BOARD_SIZE][BOARD_SIZE];
-};
 
-struct board *readBoard(char *filename) {
-  struct board *board = (struct board*)malloc(sizeof(struct board));
+BoardPtr readBoard(char *filename) {
+  BoardPtr board = (BoardPtr)malloc(sizeof(Board));
 
   FILE *fp;
   int row,col;
@@ -159,7 +163,7 @@ struct board *readBoard(char *filename) {
 int main(int argc, char **argv) {
   TrieNodePtr root;
   root = readWordList();
-  struct board *board;
+  BoardPtr board;
   board = readBoard("board.txt");
   if (root == NULL) {
     printf("root is null\n");
