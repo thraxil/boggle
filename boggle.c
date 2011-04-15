@@ -10,10 +10,12 @@
 
 char *dictfile = "/usr/share/dict/words";
 
-struct trie_node {
+typedef struct trie_node *TrieNodePtr;
+
+typedef struct trie_node {
   int terminal;
-  struct trie_node *children[ALPHA_SIZE];
-};
+  TrieNodePtr children[ALPHA_SIZE];
+} TrieNode;
 
 /* remove newlines */
 void chomp(char *s) {
@@ -25,20 +27,20 @@ int alpha_position(char c) {
   return c - 'a';
 }
 
-void initialize_trie_node(struct trie_node *t) {
+void initialize_trie_node(TrieNodePtr t) {
   int i;
   t->terminal = 0;
   for (i=0;i<ALPHA_SIZE;i++) t->children[i] = NULL;  
 }
 
-struct trie_node *talloc(void) {
-  return (struct trie_node *) malloc(sizeof(struct trie_node));
+TrieNodePtr talloc(void) {
+  return (TrieNodePtr) malloc(sizeof(TrieNode));
 }
 
-void insert_into_trie(struct trie_node *root, char *string) {
+void insert_into_trie(TrieNodePtr root, char *string) {
   int position;
   int i;
-  struct trie_node *child;
+  TrieNodePtr child;
   for (i=0; i<strlen(string); i++) {
     position = alpha_position(string[i]);
     child = root->children[position];
@@ -54,7 +56,7 @@ void insert_into_trie(struct trie_node *root, char *string) {
   }
 }
 
-void display_trie_children(struct trie_node *t) {
+void display_trie_children(TrieNodePtr t) {
   int i;
   for (i=0; i<ALPHA_SIZE;i++) {
     if (t->children[i] != NULL) {
@@ -64,7 +66,7 @@ void display_trie_children(struct trie_node *t) {
   printf("\n");
 }
 
-int search_trie(struct trie_node *root, char *string) {
+int search_trie(TrieNodePtr root, char *string) {
   int position, i;
   for (i=0; i<strlen(string); i++) {
     position = alpha_position(string[i]);
@@ -97,12 +99,12 @@ int normalizeWord(char *s) {
   return 1;
 }
 
-struct trie_node *readWordList() {
+TrieNodePtr readWordList() {
   FILE *fp;
   char line[MAX_LINE];
   int lcount;
   int legal = 0;
-  struct trie_node *root = talloc();
+  TrieNodePtr root = talloc();
   initialize_trie_node(root);
 
   fp = fopen(dictfile,"r");
@@ -123,7 +125,7 @@ struct trie_node *readWordList() {
 }
 
 int main(int argc, char **argv) {
-  struct trie_node *root;
+  TrieNodePtr root;
   root = readWordList();
   if (root == NULL) {
     printf("root is null\n");
