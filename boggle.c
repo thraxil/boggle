@@ -61,7 +61,7 @@ void display_trie_children(struct trie_node *t) {
 
 int search_trie(struct trie_node *root, char *string) {
   int position;
-  int i,j;
+  int i;
   for (i=0; i<strlen(string); i++) {
     position = alpha_position(string[i]);
     if (root->children[position] == NULL) {
@@ -86,7 +86,6 @@ int search_trie(struct trie_node *root, char *string) {
  */
 
 int normalizeWord(char *s) {
-  int i = 0;
   int c = 0;
   chomp(s);
   if (strlen(s) < 3) return 0;
@@ -103,7 +102,7 @@ struct trie_node *readWordList() {
   char line[MAX_LINE];
   int lcount;
   int legal = 0;
-  struct trie_node *root;
+  struct trie_node *root = talloc();
   initialize_trie_node(root);
 
   fp = fopen(dictfile,"r");
@@ -120,21 +119,17 @@ struct trie_node *readWordList() {
   }
  
   fclose(fp);  /* Close the file */
-  printf("%s: %d\n","zygote",search_trie(root,"zygote"));
-  printf("%s: %d\n","asdf",search_trie(root,"asdf"));
   return root;
 }
 
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
   struct trie_node *root;
   root = readWordList();
   if (root == NULL) {
     printf("root is null\n");
   } else {
-    printf("not null\n");
+    printf("%s: %d\n","zygote",search_trie(root,"zygote"));
+    printf("%s: %d\n","asdf",search_trie(root,"asdf"));
   }
-  /*  root = talloc();
-  insert_into_trie(root,"foo");
-  insert_into_trie(root,"bar"); */
-  printf("%s: %d","zygote",search_trie(root,"zygote"));
+  return 0;
 }
