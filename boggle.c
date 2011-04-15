@@ -161,10 +161,8 @@ BoardPtr readBoard(char *filename) {
 }
 
 int main(int argc, char **argv) {
-  TrieNodePtr root;
-  root = readWordList();
-  BoardPtr board;
-  board = readBoard("board.txt");
+  TrieNodePtr root = readWordList();
+  BoardPtr board = readBoard(argv[1]);
   if (root == NULL) {
     printf("root is null\n");
   } else {
