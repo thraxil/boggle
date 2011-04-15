@@ -7,6 +7,7 @@
 
 #define MAX_LINE 100
 #define ALPHA_SIZE 26
+#define BOARD_SIZE 4
 
 char *dictfile = "/usr/share/dict/words";
 
@@ -124,9 +125,42 @@ TrieNodePtr readWordList() {
   return root;
 }
 
+struct board {
+  char data[BOARD_SIZE][BOARD_SIZE];
+};
+
+struct board *readBoard(char *filename) {
+  struct board *board = (struct board*)malloc(sizeof(struct board));
+
+  FILE *fp;
+  int row,col;
+  char line[MAX_LINE];
+  char c;
+
+  fp = fopen(filename,"r");
+  if (fp == NULL) {
+    puts("cannot read board");
+    return NULL;
+  }
+  row = 0;
+  while( fgets(line, sizeof(line), fp) != NULL ) {
+    for(col=0; col<strlen(line); col++) {
+      c = line[col];
+      if (c >= 'a' && c <= 'z') {
+	board->data[row][col] = c;
+      }
+    }
+    row++;
+  }
+  fclose(fp);
+  return board;
+}
+
 int main(int argc, char **argv) {
   TrieNodePtr root;
   root = readWordList();
+  struct board *board;
+  board = readBoard("board.txt");
   if (root == NULL) {
     printf("root is null\n");
   } else {
