@@ -11,6 +11,7 @@
 char *dictfile = "/usr/share/dict/words";
 
 struct trie_node {
+  int terminal;
   struct trie_node *children[ALPHA_SIZE];
 };
 
@@ -26,6 +27,7 @@ int alpha_position(char c) {
 
 void initialize_trie_node(struct trie_node *t) {
   int i;
+  t->terminal = 0;
   for (i=0;i<ALPHA_SIZE;i++) t->children[i] = NULL;  
 }
 
@@ -46,6 +48,9 @@ void insert_into_trie(struct trie_node *root, char *string) {
       root->children[position] = child;
     } 
     root = child;
+    if (i == strlen(string) - 1) {
+      root->terminal = 1;
+    }
   }
 }
 
@@ -60,21 +65,16 @@ void display_trie_children(struct trie_node *t) {
 }
 
 int search_trie(struct trie_node *root, char *string) {
-  int position;
-  int i;
+  int position, i;
   for (i=0; i<strlen(string); i++) {
     position = alpha_position(string[i]);
     if (root->children[position] == NULL) {
-      if (i == strlen(string) - 1) {
-	return 1;
-      } else {
-	return 0;
-      } 
+      if (i == strlen(string) - 1) return 0;
     } else {
       root = root->children[position];
     }
   }
-  return 1;
+  return root->terminal;
 }
 
 /**
@@ -129,7 +129,12 @@ int main(int argc, char **argv) {
     printf("root is null\n");
   } else {
     printf("%s: %d\n","zygote",search_trie(root,"zygote"));
+    printf("%s: %d\n","zygo",search_trie(root,"zygo"));
+    printf("%s: %d\n","zygotef",search_trie(root,"zygotef"));
     printf("%s: %d\n","asdf",search_trie(root,"asdf"));
+    printf("%s: %d\n","als",search_trie(root,"als"));
+    printf("%s: %d\n","also",search_trie(root,"also"));
+    printf("%s: %d\n","alsop",search_trie(root,"alsop"));
   }
   return 0;
 }
