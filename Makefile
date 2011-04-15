@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g
+CFLAGS=-g -Wall -ansi
 
 boggle: boggle.c
 	$(CC) $(CFLAGS) -o boggle boggle.c
