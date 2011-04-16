@@ -182,9 +182,52 @@ BoardPtr readBoard(char *filename) {
   return board;
 }
 
+void check(BoardPtr board, TrieNodePtr trie, int row, int col, int seen[], char *word) {
+  struct search_result result;
+  int i,j,nrow,ncol;
+  char newword[BOARD_SIZE * BOARD_SIZE];
+  int nseen[BOARD_SIZE * BOARD_SIZE];
+  result = search_trie(trie,word);
+  if (result.found) {
+    printf("%s\n",word); /* found one! */
+  }
+  if (!result.valid_prefix) {
+    return;  /* this is a dead end */
+  }
+
+  /* copy seen array */
+  for (i=0;i<BOARD_SIZE * BOARD_SIZE; i++) nseen[i] = seen[i];
+
+  /* ok. next letter. */
+  /* neighbors (-1,-1),(-1,0),(-1,1), etc. */
+  for (i=-1;i<2;i++) {
+    for (j=-1; j<2; j++) {
+      nrow = row + i;
+      ncol = col + j;
+      if (nrow >= 0 && 
+	  nrow < BOARD_SIZE && 
+	  ncol >= 0 && 
+	  ncol < BOARD_SIZE &&
+	  seen[nrow * BOARD_SIZE + ncol] == 0) {
+
+	/* append letter, mark position in seen, and check */
+	sprintf(newword,"%s%c",word,board->data[nrow][ncol]);
+	seen[nrow * BOARD_SIZE + ncol] = 1;
+	check(board,trie,nrow,ncol,nseen,newword);
+      }
+    }
+  }
+
+}
+
 void checkPaths(BoardPtr board, TrieNodePtr trie, int row, int col) {
-  printf("%d %d",row,col);
-  printf("%c\n",board->data[row][col]);
+  char word[BOARD_SIZE * BOARD_SIZE];
+  int seen[BOARD_SIZE * BOARD_SIZE];
+  int i;
+  for (i=0;i<BOARD_SIZE * BOARD_SIZE; i++) seen[i] = 0;
+  seen[(row * BOARD_SIZE) + col] = 1;
+  sprintf(word,"%c",board->data[row][col]);
+  check(board,trie,row,col,seen,word);
 }
 
 void walkBoard(BoardPtr board, TrieNodePtr trie) {
@@ -210,8 +253,8 @@ int main(int argc, char **argv) {
   } 
   for (i=0;i<8;i++) {
     result = search_trie(root,test_strings[i]);
-    printf("%s: %d,%d\n",test_strings[i],result.found,result.valid_prefix);
+    /*    printf("%s: %d,%d\n",test_strings[i],result.found,result.valid_prefix);*/
   }
-  /*  walkBoard(board,root); */
+  walkBoard(board,root); 
   return 0;
 }
