@@ -160,6 +160,19 @@ BoardPtr readBoard(char *filename) {
   return board;
 }
 
+void checkPaths(boardPtr board, TrieNodePtr trie, int row, int col) {
+  printf("%c",board[row][col]);
+}
+
+void walkBoard(BoardPtr board, TrieNodePtr trie) {
+  int row,col;
+  for (row=0; row < BOARD_SIZE; row++) {
+    for (col=0; col < BOARD_SIZE; col++) {
+      checkPaths(board,trie,row,col);
+    }
+  }
+}
+
 int main(int argc, char **argv) {
   TrieNodePtr root = readWordList();
   BoardPtr board = readBoard(argv[1]);
