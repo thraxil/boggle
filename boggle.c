@@ -164,15 +164,15 @@ int main(int argc, char **argv) {
   TrieNodePtr root = readWordList();
   BoardPtr board = readBoard(argv[1]);
   if (root == NULL) {
-    printf("root is null\n");
-  } else {
-    printf("%s: %d\n","zygote",search_trie(root,"zygote"));
-    printf("%s: %d\n","zygo",search_trie(root,"zygo"));
-    printf("%s: %d\n","zygotef",search_trie(root,"zygotef"));
-    printf("%s: %d\n","asdf",search_trie(root,"asdf"));
-    printf("%s: %d\n","als",search_trie(root,"als"));
-    printf("%s: %d\n","also",search_trie(root,"also"));
-    printf("%s: %d\n","alsop",search_trie(root,"alsop"));
-  }
+    return 1;
+  } 
+  printf("%s: %d\n","zygote",search_trie(root,"zygote"));
+  printf("%s: %d\n","zygo",search_trie(root,"zygo"));
+  printf("%s: %d\n","zygotef",search_trie(root,"zygotef"));
+  printf("%s: %d\n","asdf",search_trie(root,"asdf"));
+  printf("%s: %d\n","als",search_trie(root,"als"));
+  printf("%s: %d\n","also",search_trie(root,"also"));
+  printf("%s: %d\n","alsop",search_trie(root,"alsop"));
+
   return 0;
 }
