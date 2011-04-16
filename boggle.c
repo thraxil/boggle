@@ -242,19 +242,10 @@ void walkBoard(BoardPtr board, TrieNodePtr trie) {
 int main(int argc, char **argv) {
   TrieNodePtr root = readWordList();
   BoardPtr board = readBoard(argv[1]);
-  char test_strings[8][9] = {
-    "zygote","zygo","zygotef","zygotes","asdf","als","also","alsop"
-  };
-  int i;
-  struct search_result result;
 
   if (root == NULL) {
     return 1;
   } 
-  for (i=0;i<8;i++) {
-    result = search_trie(root,test_strings[i]);
-    /*    printf("%s: %d,%d\n",test_strings[i],result.found,result.valid_prefix);*/
-  }
   walkBoard(board,root); 
   return 0;
 }
