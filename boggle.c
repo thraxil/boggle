@@ -7,7 +7,7 @@
 
 #define MAX_LINE 100
 #define ALPHA_SIZE 26
-#define BOARD_SIZE 4
+#define MAX_BOARD_SIZE 10
 
 char *dictfile = "/usr/share/dict/words";
 
@@ -21,7 +21,8 @@ typedef struct trie_node {
 typedef struct board *BoardPtr;
 
 typedef struct board {
-  char data[BOARD_SIZE][BOARD_SIZE];
+  int size;
+  char data[MAX_BOARD_SIZE][MAX_BOARD_SIZE];
 } Board;
 
 struct search_result {
@@ -177,16 +178,17 @@ BoardPtr readBoard(char *filename) {
       }
     }
     row++;
-  }
+  }  
   fclose(fp);
+  board->size = row;
   return board;
 }
 
 void check(BoardPtr board, TrieNodePtr trie, int row, int col, int seen[], char *word) {
   struct search_result result;
   int i,j,nrow,ncol;
-  char newword[BOARD_SIZE * BOARD_SIZE];
-  int nseen[BOARD_SIZE * BOARD_SIZE];
+  char newword[board->size * board->size];
+  int nseen[board->size * board->size];
   result = search_trie(trie,word);
   if (result.found) {
     printf("%s\n",word); /* found one! */
@@ -196,7 +198,7 @@ void check(BoardPtr board, TrieNodePtr trie, int row, int col, int seen[], char 
   }
 
   /* copy seen array */
-  for (i=0;i<BOARD_SIZE * BOARD_SIZE; i++) nseen[i] = seen[i];
+  for (i=0;i<board->size * board->size; i++) nseen[i] = seen[i];
 
   /* ok. next letter. */
   /* neighbors (-1,-1),(-1,0),(-1,1), etc. */
@@ -205,14 +207,14 @@ void check(BoardPtr board, TrieNodePtr trie, int row, int col, int seen[], char 
       nrow = row + i;
       ncol = col + j;
       if (nrow >= 0 && 
-	  nrow < BOARD_SIZE && 
+	  nrow < board->size && 
 	  ncol >= 0 && 
-	  ncol < BOARD_SIZE &&
-	  seen[nrow * BOARD_SIZE + ncol] == 0) {
+	  ncol < board->size &&
+	  seen[nrow * board->size + ncol] == 0) {
 
 	/* append letter, mark position in seen, and check */
 	sprintf(newword,"%s%c",word,board->data[nrow][ncol]);
-	seen[nrow * BOARD_SIZE + ncol] = 1;
+	seen[nrow * board->size + ncol] = 1;
 	check(board,trie,nrow,ncol,nseen,newword);
       }
     }
@@ -220,20 +222,22 @@ void check(BoardPtr board, TrieNodePtr trie, int row, int col, int seen[], char 
 
 }
 
+/* really just a driver function for check() to kick it off.
+   gets called at each position on the board */
 void checkPaths(BoardPtr board, TrieNodePtr trie, int row, int col) {
-  char word[BOARD_SIZE * BOARD_SIZE];
-  int seen[BOARD_SIZE * BOARD_SIZE];
+  char word[board->size * board->size];
+  int seen[board->size * board->size];
   int i;
-  for (i=0;i<BOARD_SIZE * BOARD_SIZE; i++) seen[i] = 0;
-  seen[(row * BOARD_SIZE) + col] = 1;
+  for (i=0;i<board->size * board->size; i++) seen[i] = 0;
+  seen[(row * board->size) + col] = 1;
   sprintf(word,"%c",board->data[row][col]);
   check(board,trie,row,col,seen,word);
 }
 
 void walkBoard(BoardPtr board, TrieNodePtr trie) {
   int row,col;
-  for (row=0; row < BOARD_SIZE; row++) {
-    for (col=0; col < BOARD_SIZE; col++) {
+  for (row=0; row < board->size; row++) {
+    for (col=0; col < board->size; col++) {
       checkPaths(board,trie,row,col);
     }
   }
