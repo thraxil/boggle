@@ -24,6 +24,10 @@ typedef struct board {
   char data[BOARD_SIZE][BOARD_SIZE];
 } Board;
 
+struct search_result {
+  int found;
+  int valid_prefix;
+};
 
 /* remove newlines */
 void chomp(char *s) {
@@ -74,18 +78,36 @@ void display_trie_children(TrieNodePtr t) {
   printf("\n");
 }
 
-int search_trie(TrieNodePtr root, char *string) {
+int has_children(TrieNodePtr t) {
+  int i;
+  for (i=0; i<ALPHA_SIZE; i++) {
+    if (t->children[i] != NULL) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+struct search_result search_trie(TrieNodePtr root, char *string) {
   int position, i;
+  struct search_result result;
+
   for (i=0; i<strlen(string); i++) {
     position = alpha_position(string[i]);
+    result.valid_prefix = root->children[position] != NULL;
     if (root->children[position] == NULL) {
-      if (i == strlen(string) - 1) return 0;
+      result.found = 0;
+      return result;
     } else {
       root = root->children[position];
     }
   }
-  return root->terminal;
+  result.found = root->terminal;
+  result.valid_prefix = has_children(root);
+  return result;
 }
+
+
 
 /**
  * removes newlines, lowercases
@@ -160,8 +182,9 @@ BoardPtr readBoard(char *filename) {
   return board;
 }
 
-void checkPaths(boardPtr board, TrieNodePtr trie, int row, int col) {
-  printf("%c",board[row][col]);
+void checkPaths(BoardPtr board, TrieNodePtr trie, int row, int col) {
+  printf("%d %d",row,col);
+  printf("%c\n",board->data[row][col]);
 }
 
 void walkBoard(BoardPtr board, TrieNodePtr trie) {
@@ -176,16 +199,19 @@ void walkBoard(BoardPtr board, TrieNodePtr trie) {
 int main(int argc, char **argv) {
   TrieNodePtr root = readWordList();
   BoardPtr board = readBoard(argv[1]);
+  char test_strings[8][9] = {
+    "zygote","zygo","zygotef","zygotes","asdf","als","also","alsop"
+  };
+  int i;
+  struct search_result result;
+
   if (root == NULL) {
     return 1;
   } 
-  printf("%s: %d\n","zygote",search_trie(root,"zygote"));
-  printf("%s: %d\n","zygo",search_trie(root,"zygo"));
-  printf("%s: %d\n","zygotef",search_trie(root,"zygotef"));
-  printf("%s: %d\n","asdf",search_trie(root,"asdf"));
-  printf("%s: %d\n","als",search_trie(root,"als"));
-  printf("%s: %d\n","also",search_trie(root,"also"));
-  printf("%s: %d\n","alsop",search_trie(root,"alsop"));
-
+  for (i=0;i<8;i++) {
+    result = search_trie(root,test_strings[i]);
+    printf("%s: %d,%d\n",test_strings[i],result.found,result.valid_prefix);
+  }
+  /*  walkBoard(board,root); */
   return 0;
 }
